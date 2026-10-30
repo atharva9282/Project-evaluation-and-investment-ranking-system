@@ -119,10 +119,15 @@ def optimize_portfolio(projects, budget):
         states = updated
     _, (score, chosen) = max(states.items(), key=lambda item: item[1][0])
     total_investment = sum(float(p["investment"]) for p in chosen)
+    portfolio_score = (
+        sum(float(p["investment"]) * float(p["score"]) for p in chosen) / total_investment
+        if total_investment else 0.0
+    )
     return {
         "projects": chosen,
         "investment": total_investment,
         "score": score,
+        "portfolio_score": portfolio_score,
         "utilization": total_investment / budget * 100,
-        "note": f"Optimization uses conservative rounded-up budget units of ₹{unit:,.0f}; this may omit combinations that fit within the budget by a small margin."
+        "note": f"Optimization maximizes the sum of selected project scores. Displayed portfolio score is investment-weighted. Budget optimization uses conservative rounded-up units of ₹{unit:,.0f}; this can omit combinations that fit by a small margin."
     }
