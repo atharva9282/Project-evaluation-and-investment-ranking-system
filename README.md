@@ -31,3 +31,18 @@ JWT bearer authentication, BCrypt password storage and route-level role checks p
 ## Current scope
 
 The repository contains a runnable full-stack foundation and working core workflows for authentication, proposal CRUD, criteria-weighted evaluations, deterministic financial calculations, risk records, ranked results, dashboard aggregates and 0/1 allocation simulation. Seed data adds 12 proposals and four initial evaluations. PDF generation, document binary storage, project assignment administration, decision approval workflow, persisted allocation scenarios, notifications, full audit coverage, and the full integration/authorization/frontend test suite are not implemented yet. The report screen currently exports ranking data as CSV. Do not treat this build as production-ready until those workflows and a production security review are complete.
+
+
+## Automated evaluation workflow
+
+Project owners can now choose **Submit & evaluate** when creating a proposal. The backend validates the financial inputs and enabled criterion weights, then automatically:
+
+1. Calculates NPV, ROI, benefit-cost ratio and a financial viability score using the existing deterministic financial engine (8% discount rate).
+2. Derives strategic alignment, technical feasibility, expected impact and implementation feasibility scores from submitted proposal attributes.
+3. Calculates risk exposure from the project's risk register. If no risks have been recorded, the engine uses a moderate default exposure rather than assuming the project is risk-free.
+4. Applies the configured criterion weights, stores the criterion-level scores and overall evaluation, and changes the project status to `EVALUATED`.
+5. Includes evaluated proposals in the ranked results. The ranking endpoint also returns an explicit rank.
+
+The **Save draft** action remains available and does not trigger evaluation. A draft can be submitted later through `POST /api/projects/{id}/submit`.
+
+Automatic evaluation is deterministic and explainable; it does not use an ML model or claim to predict outcomes. Scores derived from project attributes are screening estimates and should be reviewed by an authorized evaluator. Investment approval remains a separate human decision.
