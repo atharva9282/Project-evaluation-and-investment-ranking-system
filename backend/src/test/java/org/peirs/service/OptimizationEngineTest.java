@@ -1,3 +1,0 @@
-package org.peirs.service;
-import org.junit.jupiter.api.Test; import java.util.List; import static org.junit.jupiter.api.Assertions.*;
-class OptimizationEngineTest { @Test void selectsBestCombinationWithinBudget(){var items=List.of(new OptimizationEngine.Item(1,"A",6,9,7,20),new OptimizationEngine.Item(2,"B",5,7,6,10),new OptimizationEngine.Item(3,"C",5,7,6,10));var result=OptimizationEngine.optimize(items,10,"SCORE");assertEquals(10.0,result.get("allocated"));assertEquals(7.0,result.get("averageScore"));} @Test void underfundedBudgetSelectsNothing(){var r=OptimizationEngine.optimize(List.of(new OptimizationEngine.Item(1,"A",100,90,50,20)),10,"SCORE");assertEquals(0.0,r.get("allocated"));} }

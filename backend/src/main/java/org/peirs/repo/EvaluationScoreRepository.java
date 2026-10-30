@@ -1,1 +1,0 @@
-package org.peirs.repo; import org.peirs.model.EvaluationScore; import org.springframework.data.jpa.repository.JpaRepository; public interface EvaluationScoreRepository extends JpaRepository<EvaluationScore,Long>{}
