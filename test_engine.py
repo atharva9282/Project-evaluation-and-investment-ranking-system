@@ -1,5 +1,5 @@
 import unittest
-from engine import evaluate_project, irr, optimize_portfolio, rank_projects
+from engine import DEFAULT_WEIGHTS, evaluate_project, irr, optimize_portfolio, rank_projects
 
 
 class EvaluationTests(unittest.TestCase):
@@ -15,14 +15,16 @@ class EvaluationTests(unittest.TestCase):
         self.assertGreater(result["npv"], 0)
         self.assertGreater(result["score"], 0)
         self.assertLessEqual(result["score"], 100)
-        self.assertAlmostEqual(result["risk_score"], 24.0)
+        self.assertEqual(result["risk_score"], 24.0)
 
     def test_irr(self):
         self.assertAlmostEqual(irr([-100, 60, 60]), 13.0662, places=2)
 
-    def test_weights_must_total_100(self):
+    def test_weights_must_total_100_and_include_all_criteria(self):
         with self.assertRaises(ValueError):
-            evaluate_project(self.project, {"Only criterion": 50})
+            evaluate_project(self.project, {"Only criterion": 100})
+        with self.assertRaises(ValueError):
+            evaluate_project(self.project, {**DEFAULT_WEIGHTS, "Extra": 0})
 
     def test_ranking(self):
         rows = [{"name": "A", "score": 70, "npv": 10}, {"name": "B", "score": 90, "npv": 5}]
@@ -38,9 +40,9 @@ class EvaluationTests(unittest.TestCase):
         self.assertLessEqual(result["investment"], 100000)
         self.assertTrue(result["projects"])
 
-
-if __tests__ if False else True:
-    pass
+    def test_optimizer_rejects_non_positive_budget(self):
+        with self.assertRaises(ValueError):
+            optimize_portfolio([], 0)
 
 
 if __name__ == "__main__":

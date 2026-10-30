@@ -1,4 +1,6 @@
 """Explainable financial and multi-criteria evaluation engine."""
+import math
+
 DEFAULT_WEIGHTS = {
     "Financial Viability": 25,
     "Strategic Alignment": 20,
@@ -39,8 +41,8 @@ def irr(cashflows):
 
 def evaluate_project(project, weights=None, discount_rate=0.08):
     weights = weights or DEFAULT_WEIGHTS
-    if sum(weights.values()) != 100:
-        raise ValueError("Evaluation weights must total 100%.")
+    if set(weights) != set(DEFAULT_WEIGHTS) or sum(weights.values()) != 100:
+        raise ValueError("All six evaluation criteria must be present and weights must total 100%.")
     investment = float(project["investment"])
     revenue = float(project["annual_revenue"])
     cost = float(project["annual_cost"])
@@ -97,13 +99,15 @@ def rank_projects(projects):
 
 
 def optimize_portfolio(projects, budget):
-    """0/1 knapsack DP with conservative ₹1,000 units, increasing granularity for large budgets."""
+    """0/1 knapsack DP with rounded-up costs and at most about 50,000 budget states."""
     budget = float(budget)
-    unit = max(1000, int((budget / 50000) + 999) // 1000 * 1000)
+    if budget <= 0:
+        raise ValueError("Budget must be positive.")
+    unit = max(1, math.ceil(budget / 50000))
     capacity = int(budget // unit)
     states = {0: (0.0, [])}
     for project in projects:
-        cost_units = int((float(project["investment"]) + unit - 1) // unit)
+        cost_units = math.ceil(float(project["investment"]) / unit)
         if cost_units > capacity:
             continue
         updated = dict(states)
@@ -113,12 +117,12 @@ def optimize_portfolio(projects, budget):
             if new_used <= capacity and candidate[0] > updated.get(new_used, (-1, []))[0]:
                 updated[new_used] = candidate
         states = updated
-    used, (score, chosen) = max(states.items(), key=lambda item: item[1][0])
+    _, (score, chosen) = max(states.items(), key=lambda item: item[1][0])
     total_investment = sum(float(p["investment"]) for p in chosen)
     return {
         "projects": chosen,
         "investment": total_investment,
         "score": score,
-        "utilization": total_investment / budget * 100 if budget else 0,
-        "note": f"Optimization uses conservative budget units of ₹{unit:,.0f}; this may omit combinations that fit within the budget by a small margin."
+        "utilization": total_investment / budget * 100,
+        "note": f"Optimization uses conservative rounded-up budget units of ₹{unit:,.0f}; this may omit combinations that fit within the budget by a small margin."
     }
