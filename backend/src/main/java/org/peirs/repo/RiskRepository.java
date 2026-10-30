@@ -1,0 +1,1 @@
+package org.peirs.repo; import org.peirs.model.ProjectRisk; import org.springframework.data.jpa.repository.JpaRepository; import java.util.*; public interface RiskRepository extends JpaRepository<ProjectRisk,Long>{List<ProjectRisk> findByProjectId(Long id);}

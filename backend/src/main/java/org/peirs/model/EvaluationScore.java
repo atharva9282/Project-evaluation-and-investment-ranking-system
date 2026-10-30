@@ -1,0 +1,3 @@
+package org.peirs.model;
+import jakarta.persistence.*; import java.math.BigDecimal;
+@Entity @Table(name="evaluation_scores",uniqueConstraints=@UniqueConstraint(columnNames={"evaluation_id","criterion_id"})) public class EvaluationScore { @Id @GeneratedValue(strategy=GenerationType.IDENTITY) public Long id; @ManyToOne(optional=false) @JoinColumn(name="evaluation_id") public Evaluation evaluation; @ManyToOne(optional=false) @JoinColumn(name="criterion_id") public Criterion criterion; @Column(nullable=false) public BigDecimal score; public EvaluationScore(){} public EvaluationScore(Evaluation e,Criterion c,double s){evaluation=e;criterion=c;score=BigDecimal.valueOf(s);} }

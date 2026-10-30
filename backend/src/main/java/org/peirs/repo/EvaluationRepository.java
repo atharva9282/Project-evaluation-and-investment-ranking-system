@@ -1,0 +1,1 @@
+package org.peirs.repo; import org.peirs.model.Evaluation; import org.springframework.data.jpa.repository.JpaRepository; import java.util.*; public interface EvaluationRepository extends JpaRepository<Evaluation,Long>{List<Evaluation> findByProjectId(Long id);}

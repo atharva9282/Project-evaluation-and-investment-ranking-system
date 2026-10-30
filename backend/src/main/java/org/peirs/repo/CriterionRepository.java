@@ -1,0 +1,1 @@
+package org.peirs.repo; import org.peirs.model.Criterion; import org.springframework.data.jpa.repository.JpaRepository; import java.util.*; public interface CriterionRepository extends JpaRepository<Criterion,Long>{List<Criterion> findByEnabledTrue();}
