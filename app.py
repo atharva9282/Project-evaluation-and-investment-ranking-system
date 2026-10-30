@@ -10,14 +10,66 @@ init_db()
 
 st.markdown("""
 <style>
-.block-container {padding-top: 1.8rem; padding-bottom: 2rem;}
-[data-testid="stMetric"] {background: #f5f7fb; padding: 16px; border-radius: 12px;}
-div[data-testid="stForm"] {border: 1px solid #e5e7eb; padding: 20px; border-radius: 12px;}
+/* PEIRS visual system: high-contrast light canvas with clear card hierarchy */
+:root { color-scheme: light; }
+.stApp { background: #f3f6fb; color: #172033; }
+[data-testid="stHeader"] { background: rgba(243,246,251,.92); }
+.block-container { max-width: 1500px; padding: 2rem 2.4rem 3rem; }
+h1, h2, h3, h4, p, label, [data-testid="stMarkdownContainer"] { color: #172033; }
+h1 { font-weight: 800; letter-spacing: -0.035em; }
+h2, h3 { font-weight: 750; letter-spacing: -0.02em; }
+[data-testid="stSidebar"] { background: #101b33; }
+[data-testid="stSidebar"] * { color: #edf3ff !important; }
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p { color: #b9c7df !important; }
+[data-testid="stMetric"] {
+  background: #ffffff; border: 1px solid #e3e9f2; border-radius: 16px;
+  padding: 20px 22px; box-shadow: 0 5px 18px rgba(24,39,75,.055);
+}
+[data-testid="stMetricLabel"] p { color: #5d6b82 !important; font-size: .88rem; font-weight: 650; }
+[data-testid="stMetricValue"] { color: #14213d !important; font-weight: 800; }
+[data-testid="stMetricDelta"] { color: #16845b !important; }
+div[data-testid="stForm"], [data-testid="stExpander"] {
+  background: #ffffff; border: 1px solid #e3e9f2; border-radius: 16px;
+  padding: 18px; box-shadow: 0 4px 16px rgba(24,39,75,.04);
+}
+.stTextInput input, .stNumberInput input, .stTextArea textarea,
+[data-baseweb="select"] > div {
+  background: #ffffff !important; color: #172033 !important;
+  border-color: #cbd5e1 !important; border-radius: 10px !important;
+}
+.stSlider [data-baseweb="slider"] { padding-top: .4rem; }
+.stButton > button, [data-testid="stFormSubmitButton"] button {
+  border-radius: 10px; font-weight: 700; min-height: 2.8rem;
+  border: 1px solid #d8e0ed; transition: transform .15s ease, box-shadow .15s ease;
+}
+.stButton > button[kind="primary"], [data-testid="stFormSubmitButton"] button[kind="primary"] {
+  background: #3157d5; border-color: #3157d5; color: #ffffff;
+}
+.stButton > button:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(49,87,213,.18); }
+[data-testid="stDataFrame"], [data-testid="stTable"] {
+  background: #ffffff; border: 1px solid #e3e9f2; border-radius: 14px; overflow: hidden;
+}
+[data-testid="stAlert"] { border-radius: 12px; }
+hr { border-color: #e1e7f0; }
+small, .stCaption { color: #66758d !important; }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("Project Evaluation & Investment Ranking System")
-st.caption("Automated, explainable project screening and portfolio prioritization")
+st.markdown("""
+<div style="background:linear-gradient(115deg,#14264b 0%,#244b9b 58%,#3478c9 100%);
+            padding:26px 30px;border-radius:20px;margin-bottom:22px;
+            box-shadow:0 12px 28px rgba(30,64,125,.16);">
+  <div style="color:#bcd4ff;font-size:.78rem;font-weight:800;letter-spacing:.13em;text-transform:uppercase;">
+    Investment intelligence workspace
+  </div>
+  <div style="color:#ffffff;font-size:2rem;font-weight:850;letter-spacing:-.04em;margin-top:5px;">
+    Project Evaluation &amp; Investment Ranking System
+  </div>
+  <div style="color:#e2ecff;font-size:1rem;margin-top:7px;">
+    Automated, explainable project screening and portfolio prioritization
+  </div>
+</div>
+""", unsafe_allow_html=True)
 
 pages = ["Dashboard", "Submit Project", "Rankings", "Budget Optimizer", "Evaluation Criteria"]
 page = st.sidebar.radio("Navigation", pages)
@@ -129,9 +181,13 @@ elif page == "Budget Optimizer":
                                  value=float(max(1000000, sum(p["investment"] for p in evaluated) * 0.5)), step=100000.0)
         if st.button("Optimize portfolio", type="primary"):
             result = optimize_portfolio(evaluated, budget)
-            st.metric("Selected investment", f"₹{result['investment']:,.0f}")
-            st.metric("Combined evaluation score", f"{result['score']:.2f}")
-            st.write(f"Budget utilization: {result['utilization']:.1f}%")
+            selected_count = len(result["projects"])
+            average_score = result["score"] / selected_count if selected_count else 0
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Selected investment", f"₹{result['investment']:,.0f}")
+            m2.metric("Projects selected", selected_count)
+            m3.metric("Average project score", f"{average_score:.1f}/100")
+            st.progress(min(result["utilization"] / 100, 1.0), text=f"Budget utilization · {result['utilization']:.1f}%")
             if result["projects"]:
                 st.dataframe(pd.DataFrame(result["projects"])[["name", "investment", "score", "npv"]], hide_index=True, use_container_width=True)
                 st.success("Recommended portfolio calculated. Final selection remains subject to authorized review.")
