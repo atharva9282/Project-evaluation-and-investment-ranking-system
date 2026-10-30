@@ -26,11 +26,13 @@ public class ApiController {
     private final EvaluationScoreRepository evaluationScores;
     private final RiskRepository risks;
     private final PasswordEncoder passwords;
+    private final AutomaticEvaluationService automaticEvaluation;
     @Value("${app.jwt-secret}")
     String secret;
 
     public ApiController(UserRepository u, ProjectRepository p, CriterionRepository c, EvaluationRepository e,
-            EvaluationScoreRepository es, RiskRepository r, PasswordEncoder pw) {
+            EvaluationScoreRepository es, RiskRepository r, PasswordEncoder pw,
+            AutomaticEvaluationService automaticEvaluation) {
         users = u;
         projects = p;
         criteria = c;
@@ -38,6 +40,7 @@ public class ApiController {
         evaluationScores = es;
         risks = r;
         passwords = pw;
+        this.automaticEvaluation = automaticEvaluation;
     }
 
     public record Login(String email, String password) {
@@ -113,7 +116,10 @@ public class ApiController {
     @PostMapping("/projects/{id}/submit")
     public Project submit(@PathVariable Long id) {
         Project p = get(id);
-        p.status = "SUBMITTED";
+        if (!"DRAFT".equals(p.status) && !"SUBMITTED".equals(p.status)) {
+            throw new IllegalStateException("Only draft or submitted proposals can be evaluated");
+        }
+        automaticEvaluation.evaluate(p);
         return projects.save(p);
     }
 
@@ -206,6 +212,9 @@ public class ApiController {
         }
         out.sort((a, b) -> Double.compare(((Number) b.get("score")).doubleValue(),
                 ((Number) a.get("score")).doubleValue()));
+        for (int i = 0; i < out.size(); i++) {
+            out.get(i).put("rank", i + 1);
+        }
         return out;
     }
 
