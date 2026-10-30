@@ -91,8 +91,9 @@ public class AutomaticEvaluationService {
         Evaluation evaluation = evaluations.findByProjectId(project.id).stream()
                 .filter(e -> e.evaluator.id.equals(evaluator.id)).findFirst().orElseGet(Evaluation::new);
         if (evaluation.id != null) {
+            Long existingEvaluationId = evaluation.id;
             evaluationScores.deleteAll(evaluationScores.findAll().stream()
-                    .filter(s -> s.evaluation.id.equals(evaluation.id)).toList());
+                    .filter(s -> s.evaluation.id.equals(existingEvaluationId)).toList());
         }
         evaluation.project = project;
         evaluation.evaluator = evaluator;
