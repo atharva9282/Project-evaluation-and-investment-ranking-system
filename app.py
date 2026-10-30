@@ -182,14 +182,22 @@ elif page == "Budget Optimizer":
         if st.button("Optimize portfolio", type="primary"):
             result = optimize_portfolio(evaluated, budget)
             selected_count = len(result["projects"])
-            average_score = result["score"] / selected_count if selected_count else 0
             m1, m2, m3 = st.columns(3)
             m1.metric("Selected investment", f"₹{result['investment']:,.0f}")
             m2.metric("Projects selected", selected_count)
-            m3.metric("Average project score", f"{average_score:.1f}/100")
-            st.progress(min(result["utilization"] / 100, 1.0), text=f"Budget utilization · {result['utilization']:.1f}%")
+            m3.metric("Investment-weighted portfolio score", f"{result['portfolio_score']:.1f}/100")
+            remaining = budget - result["investment"]
+            st.progress(min(result["utilization"] / 100, 1.0), text=f"Budget utilized · {result['utilization']:.1f}%")
+            st.caption(f"Unallocated budget: ₹{remaining:,.0f}")
             if result["projects"]:
-                st.dataframe(pd.DataFrame(result["projects"])[["name", "investment", "score", "npv"]], hide_index=True, use_container_width=True)
+                st.markdown("#### Recommended project portfolio")
+                portfolio_df = pd.DataFrame(result["projects"])[["rank", "name", "sector", "investment", "score", "npv"]]
+                st.dataframe(portfolio_df, hide_index=True, use_container_width=True,
+                             column_config={
+                                 "investment": st.column_config.NumberColumn("Investment (₹)", format="₹%.0f"),
+                                 "score": st.column_config.ProgressColumn("Project score", min_value=0, max_value=100, format="%.1f"),
+                                 "npv": st.column_config.NumberColumn("NPV (₹)", format="₹%.0f")
+                             })
                 st.success("Recommended portfolio calculated. Final selection remains subject to authorized review.")
             else:
                 st.warning("No project fits within the available budget.")
